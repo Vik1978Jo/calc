@@ -14,11 +14,11 @@
   .card{border:1px solid var(--bd); border-radius:12px; padding:14px; margin-bottom:14px; background:#fff}
   label{font-size:.92rem; color:var(--mut); display:block; margin:0 0 6px}
   input,select,button,textarea{font-size:16px}
-  input[type=text],input[type=email],input[type=number],select,textarea{
+  input[type=text],input[type=email],select,textarea{
     width:100%; padding:10px; border:1px solid var(--bd); border-radius:10px; background:#fff}
   textarea{resize:vertical; min-height:100px}
   .row{display:grid; grid-template-columns:1fr 1fr; gap:12px}
-  .row4{display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px}
+  .row4{display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; align-items:end}
   .btn{padding:12px 14px; border:1px solid var(--bd); border-radius:10px; background:#f8fafc; cursor:pointer; min-height:44px}
   .btn.primary{background:var(--pri); border-color:var(--pri); color:#fff}
   .btn[disabled]{opacity:.5; cursor:not-allowed}
@@ -63,26 +63,25 @@
       </div>
     </div>
 
-    <div class="row4" style="margin-top:12px">
-      <div id="lenWrap">
+    <div class="row4" id="controlsRow" style="margin-top:12px">
+      <div id="qtyWrap" style="order:1">
+        <label id="qtyLabel">Menge <span id="qtyUnit" class="muted"></span></label>
+        <input id="inpQty" type="text" inputmode="decimal" placeholder="">
+      </div>
+      <div id="lenWrap" style="order:2">
         <label>Lagerlänge (m) <span id="lenHint" class="muted"></span></label>
         <select id="ddLen" class="len"></select>
       </div>
-      <div id="cutWrap">
+      <div id="cutWrap" style="order:3">
         <label>Kürzen auf (m) <span class="muted">(optional)</span></label>
         <input id="inpCut" type="text" inputmode="decimal" placeholder="z. B. 2,80">
       </div>
-      <div>
+      <div id="unitWrap" style="order:4">
         <label>Einheit</label>
         <select id="ddUnit" class="unit" disabled></select>
       </div>
-      <div>
-        <label>Menge <span id="qtyUnit" class="muted"></span></label>
-        <input id="inpQty" type="text" inputmode="decimal" placeholder="z. B. 10">
-      </div>
     </div>
 
-    <!-- ВЕРНУЛ кнопку добавления -->
     <div style="margin-top:12px; display:flex; gap:10px; align-items:flex-end">
       <button id="btnAdd" class="btn primary" style="width:100%">Zur Bestellung hinzufügen</button>
     </div>
@@ -160,13 +159,9 @@ const toast = (msg, ok=true)=>{
   setTimeout(()=>{ s.textContent=''; s.className='status'; }, 2500);
 };
 
-/* ---------- Sortiment / Regeln ---------- */
-const stdLen = [3,4,5]; // Lagerlängen
+/* ---------- Sortiment ---------- */
+const stdLen = [3,4,5];
 
-/* Правила:
-   - Для lfm и m²: всегда есть выбор 3/4/5 м и опц. "Kürzen auf" — только инфо для распила (на расчёт не влияет).
-   - Для RM/FM/Std: длина/рез скрыты.
-*/
 const DB = {
   "Latten (sägerau)": [
     { sku:"LAT-4x6",  title:"Latte 4 × 6 cm",  unitLock:"lfm", laengen_m: stdLen },
@@ -209,12 +204,6 @@ const DB = {
     { sku:"K-10x20", title:"Kantholz 10 × 20 cm", unitLock:"lfm", laengen_m: stdLen },
     { sku:"K-12x24", title:"Kantholz 12 × 24 cm", unitLock:"lfm", laengen_m: stdLen }
   ],
-  "Unbesäumte Bretter (sägerau)": [
-    { sku:"UB-24-15-22", title:"2,4 cm, Breite 15–22 cm", unitLock:"lfm", laengen_m: stdLen },
-    { sku:"UB-24-23-30", title:"2,4 cm, Breite 23–30 cm", unitLock:"lfm", laengen_m: stdLen },
-    { sku:"UB-30-15-22", title:"3,0 cm, Breite 15–22 cm", unitLock:"lfm", laengen_m: stdLen },
-    { sku:"UB-30-23-30", title:"3,0 cm, Breite 23–30 cm", unitLock:"lfm", laengen_m: stdLen }
-  ],
   "Riffelbohlen 27 × 135 mm": [
     { sku:"RIF-27x135-fein", title:"fein geriffelt (≈ 30 × 140 mm)", unitLock:"m²", laengen_m: stdLen },
     { sku:"RIF-27x135-grob", title:"grob geriffelt / Barfußdiele",   unitLock:"m²", laengen_m: stdLen }
@@ -232,17 +221,6 @@ const DB = {
     { sku:"SGV-20mm", title:"Endmaß 20 mm", unitLock:"m²", laengen_m: stdLen },
     { sku:"SGV-25mm", title:"Endmaß 25 mm", unitLock:"m²", laengen_m: stdLen },
     { sku:"SGV-30mm", title:"Endmaß 30 mm", unitLock:"m²", laengen_m: stdLen }
-  ],
-  "Kantholz gehobelt – vierseitig": [
-    { sku:"KGV-90x90",   title:"90 × 90 mm",   unitLock:"lfm", laengen_m: stdLen },
-    { sku:"KGV-100x100", title:"100 × 100 mm", unitLock:"lfm", laengen_m: stdLen },
-    { sku:"KGV-110x110", title:"110 × 110 mm", unitLock:"lfm", laengen_m: stdLen },
-    { sku:"KGV-115x115", title:"115 × 115 mm", unitLock:"lfm", laengen_m: stdLen },
-    { sku:"KGV-120x120", title:"120 × 120 mm", unitLock:"lfm", laengen_m: stdLen }
-  ],
-  "Profile": [
-    { sku:"WFP-20x135",    title:"Wechselfalzprofil FM 20 × 135 mm (DB 125 mm)", unitLock:"m²", laengen_m: stdLen },
-    { sku:"SLP-20x95-135", title:"Softline-Profil 20 × 95 / 20 × 135 mm",        unitLock:"m²", laengen_m: stdLen }
   ],
   "Lose Produkte / Dienstleistungen": [
     { sku:"HS-RM",   title:"Hackschnitzel frisch",        unitLock:"RM"  },
@@ -267,13 +245,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   el('ddCat').onchange = ()=>{ catKey = el('ddCat').value; renderProducts(); };
   el('ddProd').onchange = onProductChange;
+
   el('ddLen').onchange = updateCalcNote;
   el('inpCut').oninput = updateCalcNote;
   el('inpQty').oninput = updateCalcNote;
 
-  if(el('btnAdd')) el('btnAdd').onclick = addToCart; // guard
-  if(el('btnClear')) el('btnClear').onclick = ()=>{ cart=[]; renderCart(); toast('Warenkorb geleert.'); };
-  if(el('btnSend')) el('btnSend').onclick = sendAnfrage;
+  el('btnAdd').onclick = addToCart;
+  el('btnClear').onclick = ()=>{ cart=[]; renderCart(); toast('Warenkorb geleert.'); };
+  el('btnSend').onclick = sendAnfrage;
 
   el('chkPrivacy').onchange = controlSendEnabled;
   el('inpName').oninput = controlSendEnabled;
@@ -288,54 +267,90 @@ function renderProducts(){
   const arr = DB[catKey] || [];
   el('ddProd').innerHTML = arr.map((p,i)=>`<option value="${i}">${p.title}</option>`).join('');
   prod = arr[0] || null;
-  setupUnitAndLengthUI();
+  setupUnitAndControls();
   updateCalcNote();
 }
 
 function onProductChange(){
   const i=+el('ddProd').value;
   prod = (DB[catKey]||[])[i]||null;
-  setupUnitAndLengthUI();
+  setupUnitAndControls();
   updateCalcNote();
 }
 
-function setupUnitAndLengthUI(){
-  // Единица фиксирована (unitLock)
-  const ddUnit = el('ddUnit');
-  const qtyUnit = el('qtyUnit');
-  ddUnit.innerHTML = '';
+function setupUnitAndControls(){
   const unit = prod?.unitLock || 'lfm';
-  ddUnit.innerHTML = `<option value="${unit}">${unit}</option>`;
-  ddUnit.value = unit;
-  ddUnit.disabled = true;
-  qtyUnit.textContent = `(${unit})`;
 
-  // Длина/рез: показываем для lfm и m², скрываем для RM/FM/Std
+  // Einheit (readonly)
+  el('ddUnit').innerHTML = `<option value="${unit}">${unit}</option>`;
+  el('ddUnit').value = unit;
+  el('ddUnit').disabled = true;
+
+  // Поля
+  const hasLens = Array.isArray(prod?.laengen_m) && prod.laengen_m.length>0;
   const lenWrap = el('lenWrap');
   const cutWrap = el('cutWrap');
-  const hasLens = Array.isArray(prod?.laengen_m) && prod.laengen_m.length>0;
+  const qtyWrap = el('qtyWrap');
+  const qtyUnit = el('qtyUnit');
+  const qtyLabel = el('qtyLabel');
 
-  if(unit==='RM' || unit==='FM' || unit==='Std'){
-    lenWrap.style.display='none';
-    cutWrap.style.display='none';
-  }else{
-    if(hasLens){
-      lenWrap.style.display='';
-      cutWrap.style.display='';
-      const dd = el('ddLen'), hint = el('lenHint');
-      dd.innerHTML = prod.laengen_m.map(L=>`<option value="${L}">${L} m</option>`).join('');
-      dd.disabled = false;
-      dd.value = String(prod.laengen_m[0]); // по умолчанию 3 м
-      hint.textContent = `(Standard: ${prod.laengen_m.join(', ')} m)`;
-    }else{
-      lenWrap.style.display='none';
-      cutWrap.style.display='none';
-    }
+  // Наполнение длины
+  if(hasLens){
+    el('ddLen').innerHTML = prod.laengen_m.map(L=>`<option value="${L}">${L} m</option>`).join('');
+    el('ddLen').disabled = false;
+    el('ddLen').value = String(prod.laengen_m[0]);
+    el('lenHint').textContent = `(Standard: ${prod.laengen_m.join(', ')} m)`;
+  }
+
+  // Видимость + порядок
+  if(unit==='lfm'){
+    // порядок: Länge (1) → Stück (2) → Kürzen (3)
+    lenWrap.style.display = hasLens ? '' : 'none';
+    cutWrap.style.display = hasLens ? '' : 'none';
+    qtyWrap.style.display = '';
+    lenWrap.style.order = 1; qtyWrap.style.order = 2; cutWrap.style.order = 3;
+
+    qtyLabel.firstChild && (qtyLabel.firstChild.nodeValue = 'Anzahl Stück ');
+    qtyUnit.textContent = '(St.)';
+    el('inpQty').placeholder = 'z. B. 10';
+  } else if (unit==='m²'){
+    // порядок: m² (1) → Länge (2) → Kürzen (3)
+    qtyWrap.style.display = '';
+    lenWrap.style.display = hasLens ? '' : 'none';
+    cutWrap.style.display = hasLens ? '' : 'none';
+    qtyWrap.style.order = 1; lenWrap.style.order = 2; cutWrap.style.order = 3;
+
+    qtyLabel.firstChild && (qtyLabel.firstChild.nodeValue = 'Anzahl m² ');
+    qtyUnit.textContent = '(m²)';
+    el('inpQty').placeholder = 'z. B. 20';
+  } else {
+    // RM/FM/Std: только количество
+    qtyWrap.style.display = '';
+    lenWrap.style.display = 'none';
+    cutWrap.style.display = 'none';
+    qtyWrap.style.order = 1;
+
+    qtyLabel.firstChild && (qtyLabel.firstChild.nodeValue = 'Menge ');
+    qtyUnit.textContent = `(${unit})`;
+    el('inpQty').placeholder = unit==='Std' ? 'z. B. 2' : 'z. B. 10';
   }
 }
 
-/* ---------- Hinweis ---------- */
-function updateCalcNote(){ el('calcNote').textContent = ''; }
+/* ---------- Hinweise ---------- */
+function updateCalcNote(){
+  const unit = el('ddUnit').value;
+  const qtyRaw = el('inpQty').value;
+  const pcs = Math.max(0, Math.floor(parseDE(qtyRaw)));
+  const lenSel = el('ddLen');
+  const len = (lenSel && !lenSel.disabled && lenSel.value) ? parseDE(lenSel.value) : NaN;
+
+  const note = el('calcNote');
+  if(unit==='lfm' && pcs>0 && Number.isFinite(len)){
+    note.textContent = `Hinweis: Abrechnung nach lfm → ${pcs} Stück × ${len} m = ${(pcs*len).toFixed(2)} lfm`;
+  } else {
+    note.textContent = '';
+  }
+}
 
 /* ---------- Enable send ---------- */
 function controlSendEnabled(){
@@ -349,43 +364,66 @@ function controlSendEnabled(){
 /* ---------- Cart ---------- */
 function addToCart(){
   if(!prod){ toast('Bitte Produkt wählen.', false); return; }
-
-  const qty = parseDE(el('inpQty').value);
-  if(!(qty>0)){ toast('Menge muss > 0 sein.', false); return; }
-
   const unit = prod.unitLock || 'lfm';
-  const hasLens = Array.isArray(prod?.laengen_m) && prod.laengen_m.length>0;
 
-  let stockLen = null, cutTo = null;
-  if ((unit==='lfm' || unit==='m²') && hasLens){
-    const lenSel = el('ddLen');
-    if(!lenSel || lenSel.disabled || !lenSel.value){ toast('Bitte Lagerlänge wählen.', false); return; }
-    stockLen = parseDE(lenSel.value);
+  let qty = 0;            // что уходит как qty (lfm / m² / RM / ...)
+  let pieces_count = null; // только для lfm
+  let stockLen = null;
+  let cutTo = null;
 
+  if(unit==='lfm'){
+    const pcs = Math.max(0, Math.floor(parseDE(el('inpQty').value)));
+    if(!(pcs>0)){ toast('Anzahl Stück muss > 0 sein.', false); return; }
+    if(!el('ddLen').value){ toast('Bitte Lagerlänge wählen.', false); return; }
+    stockLen = parseDE(el('ddLen').value);
+    if(!(stockLen>0)){ toast('Ungültige Lagerlänge.', false); return; }
     const cutValRaw = (el('inpCut').value||'').trim();
     if(cutValRaw){
-      const cutVal = parseDE(cutValRaw);
-      if(!(cutVal>0)){ toast('„Kürzen auf“ ist ungültig.', false); return; }
-      if(cutVal>stockLen){ toast('„Kürzen auf“ muss ≤ Lagerlänge sein.', false); return; }
-      cutTo = +cutVal.toFixed(2);
+      const cv = parseDE(cutValRaw);
+      if(!(cv>0) || cv>stockLen){ toast('„Kürzen auf“ muss ≤ Lagerlänge sein.', false); return; }
+      cutTo = +cv.toFixed(2);
     }
+    pieces_count = pcs;
+    qty = +(pcs*stockLen).toFixed(2); // qty в lfm
+  } else if (unit==='m²'){
+    const sqm = parseDE(el('inpQty').value);
+    if(!(sqm>0)){ toast('Anzahl m² muss > 0 sein.', false); return; }
+    if(!el('ddLen').value){ toast('Bitte Lagerlänge wählen.', false); return; }
+    stockLen = parseDE(el('ddLen').value);
+    if(!(stockLen>0)){ toast('Ungültige Lagerlänge.', false); return; }
+    const cutValRaw = (el('inpCut').value||'').trim();
+    if(cutValRaw){
+      const cv = parseDE(cutValRaw);
+      if(!(cv>0) || cv>stockLen){ toast('„Kürzen auf“ muss ≤ Lagerlänge sein.', false); return; }
+      cutTo = +cv.toFixed(2);
+    }
+    qty = +sqm.toFixed(2); // qty в m²
+  } else { // RM / FM / Std
+    const v = parseDE(el('inpQty').value);
+    if(!(v>0)){ toast('Menge muss > 0 sein.', false); return; }
+    qty = +v.toFixed(2);
   }
 
   const idx = cart.findIndex(x=>
     x.sku===prod.sku && x.unit===unit &&
     (x.stock_length_m??null)===(stockLen??null) &&
-    (x.cut_to_m??null)===(cutTo??null)
+    (x.cut_to_m??null)===(cutTo??null) &&
+    (x.pieces_count??null)===(pieces_count??null)
   );
   if(idx>-1){ cart[idx].qty = +(cart[idx].qty + qty).toFixed(2); }
   else{
     cart.push({
-      sku:prod.sku, title:prod.title, unit,
-      qty:+qty.toFixed(2),
-      stock_length_m: stockLen,
-      cut_to_m: cutTo
+      sku:prod.sku,
+      title:prod.title,
+      unit,
+      qty,
+      stock_length_m: stockLen ?? null,
+      cut_to_m: cutTo ?? null,
+      pieces_count: pieces_count ?? null
     });
   }
 
+  // очистка
   el('inpQty').value='';
   el('inpCut').value='';
 
@@ -407,11 +445,15 @@ function renderCart(){
   cart.forEach((item,i)=>{
     const tr=document.createElement('tr');
 
-    const td1=document.createElement('td'); td1.textContent=item.title; td1.setAttribute('data-label','Produkt');
+    const td1=document.createElement('td'); 
+    td1.textContent=item.title; td1.setAttribute('data-label','Produkt');
 
     const tdLen=document.createElement('td'); tdLen.setAttribute('data-label','Länge');
     if(item.stock_length_m){
-      tdLen.textContent = item.cut_to_m ? `${item.stock_length_m} m (gekürzt auf ${(+item.cut_to_m).toFixed(2)} m)` : `${item.stock_length_m} m`;
+      let txt = `${item.stock_length_m} m`;
+      if(item.pieces_count){ txt += ` × ${item.pieces_count} St.`; }
+      if(item.cut_to_m){ txt += ` (gekürzt auf ${(+item.cut_to_m).toFixed(2)} m)`; }
+      tdLen.textContent = txt;
     }else{
       tdLen.textContent='—';
     }
@@ -448,7 +490,8 @@ function buildPayload(){
     items: cart.map(x=>({
       sku:x.sku, title:x.title, unit:x.unit, qty:x.qty,
       stock_length_m: x.stock_length_m ?? null,
-      cut_to_m: x.cut_to_m ?? null
+      cut_to_m: x.cut_to_m ?? null,
+      pieces_count: x.pieces_count ?? null
     })),
     mitteilung:(el('inpMessage').value||'').trim(),
     privacyAccepted: el('chkPrivacy').checked === true,
@@ -465,6 +508,7 @@ function sendAnfrage(){
   if(!cart.length){ toast('Warenkorb ist leer.', false); return; }
   if(!validateContact()) return;
   if(!el('chkPrivacy').checked){ toast('Bitte stimmen Sie der Datenschutzerklärung zu.', false); return; }
+
   const payload = buildPayload();
 
   // 1) как в оригинале: postMessage для Velo/CRM
