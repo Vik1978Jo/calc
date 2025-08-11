@@ -1,285 +1,480 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Fassadenbretter-Rechner</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Anfrage – Holz</title>
 <style>
-  :root{--bg:#fff;--fg:#111;--muted:#6b7280;--pri:#2563eb;--bd:#e5e7eb;}
-  *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
-  body{margin:0;background:var(--bg);color:var(--fg)}
-  .wrap{max-width:940px;margin:12px auto;padding:12px}
-  h2{margin:.25rem 0 .75rem}
-  .grid{display:grid;gap:12px}
-  .card{border:1px solid var(--bd);border-radius:12px;padding:12px}
-  label{font-size:.9rem;color:var(--muted)}
-  input,select,button{font-size:1rem}
-  input[type=number],select{width:100%;padding:10px;border:1px solid var(--bd);border-radius:10px}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-  .btn{padding:10px 14px;border:1px solid var(--bd);border-radius:10px;background:#f9fafb;cursor:pointer}
-  .btn.primary{background:var(--pri);color:#fff;border-color:var(--pri)}
-  .len-list{display:flex;flex-wrap:wrap;gap:8px}
-  .len-list .btn{min-width:72px;text-align:center}
-  .counter{display:flex;align-items:center;gap:8px}
-  .counter .btn{width:40px;height:40px;padding:0}
-  .pill{display:inline-block;padding:6px 10px;border:1px solid var(--bd);border-radius:999px;font-size:.9rem}
-  .result{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  .result .card{padding:10px;text-align:center}
-  .muted{color:var(--muted);font-size:.9rem}
-  .walls{display:grid;gap:8px}
-  .wall-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border:1px dashed var(--bd);border-radius:10px}
-  .wall-item .info{font-size:.95rem}
-  .wall-item .del{color:#b91c1c;cursor:pointer;border:none;background:transparent}
-  @media (max-width:720px){.row,.row3,.result{grid-template-columns:1fr}.len-list .btn{flex:1}}
+  :root{ --bd:#e5e7eb; --fg:#0f172a; --mut:#64748b; --pri:#2563eb; --ok:#065f46; --err:#b91c1c; --bg:#ffffff; }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{ margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;}
+  .wrap{max-width:960px; margin:0 auto; padding:16px}
+  h2{margin:.25rem 0 .75rem; font-size:1.6rem}
+  .card{border:1px solid var(--bd); border-radius:12px; padding:14px; margin-bottom:14px; background:#fff}
+  label{font-size:.92rem; color:var(--mut); display:block; margin:0 0 6px}
+  input,select,button,textarea{font-size:16px}
+  input[type=text],input[type=email],input[type=number],select,textarea{
+    width:100%; padding:10px; border:1px solid var(--bd); border-radius:10px; background:#fff}
+  textarea{resize:vertical; min-height:100px}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .row4{display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px}
+  .btn{padding:12px 14px; border:1px solid var(--bd); border-radius:10px; background:#f8fafc; cursor:pointer; min-height:44px}
+  .btn.primary{background:var(--pri); border-color:var(--pri); color:#fff}
+  .btn[disabled]{opacity:.5; cursor:not-allowed}
+  table{width:100%; border-collapse:collapse}
+  th,td{padding:10px; border-bottom:1px solid var(--bd); text-align:left; vertical-align:middle}
+  .muted{color:var(--mut); font-size:.92rem}
+  .right{text-align:right}
+  .qty{width:120px}
+  .len{width:140px}
+  .unit{width:140px}
+  .status{margin-top:8px}
+  .ok{color:var(--ok)} .err{color:var(--err)}
+  .flex-end{display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap}
+  @media (max-width:820px){ .row,.row4{grid-template-columns:1fr 1fr} }
+  @media (max-width:600px){
+    .wrap{padding:12px}
+    .row,.row4{grid-template-columns:1fr}
+    .btn{width:100%}
+    table{border:0} thead{display:none} tbody, tr, td{display:block; width:100%}
+    tr{border:1px solid var(--bd); border-radius:10px; padding:8px; margin-bottom:10px; background:#fff}
+    td{border:0; padding:6px 0}
+    td[data-label]::before{content:attr(data-label) " "; display:block; font-size:.85rem; color:var(--mut); margin-bottom:2px}
+    .qty,.len,.unit{width:100%}
+    .flex-end{justify-content:stretch}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h2>Fassadenbretter-Rechner</h2>
+  <h2>Anfrage</h2>
 
-  <!-- Kategorie / Position / Richtung / Längen / Verschnitt -->
-  <div class="card grid">
+  <!-- Auswahl -->
+  <div class="card">
     <div class="row">
       <div>
         <label>Kategorie</label>
-        <select id="ddCategory"></select>
+        <select id="ddCat"></select>
       </div>
       <div>
-        <label>Position</label>
-        <select id="ddPosition"></select>
+        <label>Produkt</label>
+        <select id="ddProd"></select>
       </div>
     </div>
 
-    <div class="row">
-      <div>
-        <label>Brettlänge wählen</label>
-        <div id="lenButtons" class="len-list"></div>
+    <div class="row4" style="margin-top:12px">
+      <div id="lenWrap">
+        <label>Lagerlänge (m) <span id="lenHint" class="muted"></span></label>
+        <select id="ddLen" class="len"></select>
+      </div>
+      <div id="cutWrap">
+        <label>Kürzen auf (m) <span class="muted">(optional)</span></label>
+        <input id="inpCut" type="text" inputmode="decimal" placeholder="z. B. 2,80">
       </div>
       <div>
-        <label>Richtung</label><br/>
-        <label><input type="radio" name="dir" value="H" checked> Horizontal</label>
-        &nbsp;&nbsp;
-        <label><input type="radio" name="dir" value="V"> Vertikal</label>
+        <label>Einheit</label>
+        <select id="ddUnit" class="unit" disabled></select>
+      </div>
+      <div>
+        <label>Menge <span id="qtyUnit" class="muted"></span></label>
+        <input id="inpQty" type="text" inputmode="decimal" placeholder="z. B. 10">
       </div>
     </div>
 
-    <div class="row">
-      <div>
-        <label>Verschnitt: <span id="lblCut">10%</span></label>
-        <input id="sldCut" type="range" min="5" max="15" step="1" value="10"/>
-      </div>
-      <div><span class="muted">Preis deaktiviert (—)</span></div>
+    <!-- ВЕРНУЛ кнопку добавления -->
+    <div style="margin-top:12px; display:flex; gap:10px; align-items:flex-end">
+      <button id="btnAdd" class="btn primary" style="width:100%">Zur Bestellung hinzufügen</button>
+    </div>
+
+    <div class="muted" id="calcNote" style="margin-top:8px"></div>
+  </div>
+
+  <!-- Warenkorb -->
+  <div class="card">
+    <div class="muted" style="margin-bottom:8px">Ihre Auswahl</div>
+    <table>
+      <thead>
+        <tr><th>Produkt</th><th>Länge</th><th>Einheit</th><th class="right">Menge</th><th class="right">Aktion</th></tr>
+      </thead>
+      <tbody id="cartBody">
+        <tr id="emptyRow"><td colspan="5" class="muted">Noch keine Positionen hinzugefügt.</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px">
+      <button id="btnClear" class="btn">Warenkorb leeren</button>
     </div>
   </div>
 
-  <!-- Wände -->
-  <div class="card grid">
-    <label>Wände</label>
+  <!-- Kontakte -->
+  <div class="card">
     <div class="row">
-      <div><input id="inpWL" type="number" step="0.01" placeholder="Länge (m)"></div>
-      <div><input id="inpWH" type="number" step="0.01" placeholder="Höhe (m)"></div>
+      <div>
+        <label>Ihr Name*</label>
+        <input id="inpName" type="text" required placeholder="Max Mustermann" autocomplete="name">
+      </div>
+      <div>
+        <label>E-Mail*</label>
+        <input id="inpEmail" type="email" required placeholder="max@mail.de" autocomplete="email">
+      </div>
     </div>
-    <div class="row">
-      <div><label><input id="chkG" type="checkbox"> Giebel hinzufügen</label></div>
-      <div><input id="inpGH" type="number" step="0.01" placeholder="Giebelhöhe (m)" disabled></div>
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label>Telefon (optional)</label>
+        <input id="inpPhone" type="text" placeholder="+49 ..." autocomplete="tel">
+      </div>
+      <div>
+        <label>Mitteilung (optional)</label>
+        <textarea id="inpMessage" placeholder="Ihre Nachricht an uns…"></textarea>
+      </div>
     </div>
-    <div><button id="btnAddWall" class="btn">Wand hinzufügen</button></div>
-    <div class="walls" id="walls"></div>
-  </div>
 
-  <!-- Öffnungen -->
-  <div class="card grid">
-    <label>Fenster & Türen</label>
-    <div class="row3">
-      <div class="counter">
-        <button class="btn" id="kMinus">−</button>
-        <span class="pill">Klein 1×1</span>
-        <span id="kCount">0</span>
-        <button class="btn" id="kPlus">+</button>
-      </div>
-      <div class="counter">
-        <button class="btn" id="gMinus">−</button>
-        <span class="pill">Groß 1,2×1,2</span>
-        <span id="gCount">0</span>
-        <button class="btn" id="gPlus">+</button>
-      </div>
-      <div class="counter">
-        <button class="btn" id="tMinus">−</button>
-        <span class="pill">Tür 1×2,1</span>
-        <span id="tCount">0</span>
-        <button class="btn" id="tPlus">+</button>
-      </div>
+    <div style="margin-top:12px; display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap">
+      <label style="display:flex; gap:8px; align-items:flex-start">
+        <input id="chkPrivacy" type="checkbox" style="margin-top:3px">
+        <span class="muted">Ich habe die <a href="/datenschutz" target="_top">Datenschutzerklärung</a> gelesen und stimme zu.</span>
+      </label>
     </div>
-    <div>
-      <label>Zusätzliche Öffnungen (m²)</label>
-      <input id="inpExtra" type="number" step="0.01" value="0">
-    </div>
-  </div>
 
-  <!-- Ergebnis -->
-  <div class="card grid">
-    <div class="result">
-      <div class="card"><div class="muted">Laufmeter</div><div id="outLfm" style="font-weight:600">0</div></div>
-      <div class="card"><div class="muted">Stück (nach Richtung)</div><div id="outStk" style="font-weight:600">0</div></div>
-      <div class="card"><div class="muted">m³</div><div id="outM3" style="font-weight:600">0</div></div>
-      <div class="card"><div class="muted">Preis</div><div id="outPrice" style="font-weight:600">—</div></div>
+    <div style="margin-top:10px" class="muted">Ihre Anfrage ist unverbindlich und verpflichtet Sie zu keinem Kauf.</div>
+
+    <div class="flex-end" style="margin-top:12px">
+      <button id="btnSend" class="btn primary" disabled>Anfrage senden</button>
     </div>
-    <div class="muted">Ungefähre Schätzung. Öffnungen werden bei „Stück“ nicht abgezogen (Sicherheitsaufschlag).</div>
-    <div><button id="btnCalc" class="btn primary">Berechnen</button></div>
+    <div id="status" class="status"></div>
   </div>
 </div>
 
 <script>
-/* ===== ассортимент БЕЗ цен =====
-   Для фасадных позиций задаём: dicke_mm, nutzbreite_mm, laengen (м)
+/* ---------- Helpers ---------- */
+const el = id => document.getElementById(id);
+const parseDE = (v) => {
+  if (v==null) return NaN;
+  const t = String(v).trim().replace(/\s+/g,'').replace(',', '.');
+  const n = parseFloat(t);
+  return Number.isFinite(n) ? n : NaN;
+};
+const toast = (msg, ok=true)=>{
+  const s=el('status'); if(!s) return;
+  s.textContent=msg; s.className='status '+(ok?'ok':'err');
+  setTimeout(()=>{ s.textContent=''; s.className='status'; }, 2500);
+};
+
+/* ---------- Sortiment / Regeln ---------- */
+const stdLen = [3,4,5]; // Lagerlängen
+
+/* Правила:
+   - Для lfm и m²: всегда есть выбор 3/4/5 м и опц. "Kürzen auf" — только инфо для распила (на расчёт не влияет).
+   - Для RM/FM/Std: длина/рез скрыты.
 */
-const SORTIMENT = {
-  "Schalung": [
-    { title:"Schalung mit Nut + Feder 20 x 95 mm",  unit:"m²", dicke_mm:20, nutzbreite_mm:95,  laengen:[3,4,5,6] },
-    { title:"Schalung mit Nut + Feder 27 x 135 mm", unit:"m²", dicke_mm:27, nutzbreite_mm:135, laengen:[3,4,5,6] },
-    { title:"Schalung mit Nut + Feder 32 x 135 mm", unit:"m²", dicke_mm:32, nutzbreite_mm:135, laengen:[3,4,5,6] },
-    { title:"2,4 x 10 cm (Bohlen)",                unit:"lfm", dicke_mm:24, nutzbreite_mm:100, laengen:[3,4,5,6] }
+const DB = {
+  "Latten (sägerau)": [
+    { sku:"LAT-4x6",  title:"Latte 4 × 6 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"LAT-5x8",  title:"Latte 5 × 8 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"LAT-6x8",  title:"Latte 6 × 8 cm",  unitLock:"lfm", laengen_m: stdLen }
   ],
-  "Profilbretter / Riffelbohlen": [
-    { title:"27 x 135 mm fein geriffelt", unit:"m²", dicke_mm:27, nutzbreite_mm:135, laengen:[3,4,5,6] },
-    { title:"27 x 135 mm grob geriffelt", unit:"lfm", dicke_mm:27, nutzbreite_mm:135, laengen:[3,4,5,6] }
+  "Schalung (sägerau)": [
+    { sku:"SCH-24mm", title:"Schalung 2,4 cm", unitLock:"m²",  laengen_m: stdLen },
+    { sku:"SCH-30mm", title:"Schalung 3,0 cm", unitLock:"m²",  laengen_m: stdLen },
+    { sku:"SCH-35mm", title:"Schalung 3,5 cm", unitLock:"m²",  laengen_m: stdLen },
+    { sku:"BD-24x5",  title:"Bodenbrett 2,4 × 5 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"BD-24x8",  title:"Bodenbrett 2,4 × 8 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"BD-24x10", title:"Bodenbrett 2,4 × 10 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"BD-24x12", title:"Bodenbrett 2,4 × 12 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"BD-24x14", title:"Bodenbrett 2,4 × 14 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"BD-24x16", title:"Bodenbrett 2,4 × 16 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"BD-24x18", title:"Bodenbrett 2,4 × 18 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"BD-24x20", title:"Bodenbrett 2,4 × 20 cm", unitLock:"lfm", laengen_m: stdLen }
   ],
-  "Unbesäumte Bretter": [
-    { title:"2,4 cm Breite 15–22 cm", unit:"lfm", dicke_mm:24, nutzbreite_mm:180, laengen:[3,4,5,6] }
+  "Kantholz (sägerau)": [
+    { sku:"K-9x9",   title:"Kantholz 9 × 9 cm",   unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-5x10",  title:"Kantholz 5 × 10 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-8x10",  title:"Kantholz 8 × 10 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-10x10", title:"Kantholz 10 × 10 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-6x12",  title:"Kantholz 6 × 12 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-10x12", title:"Kantholz 10 × 12 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-12x12", title:"Kantholz 12 × 12 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-6x14",  title:"Kantholz 6 × 14 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-7x14",  title:"Kantholz 7 × 14 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-14x14", title:"Kantholz 14 × 14 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-6x16",  title:"Kantholz 6 × 16 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-8x16",  title:"Kantholz 8 × 16 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-16x16", title:"Kantholz 16 × 16 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-6x18",  title:"Kantholz 6 × 18 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-8x18",  title:"Kantholz 8 × 18 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-9x18",  title:"Kantholz 9 × 18 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-4x20",  title:"Kantholz 4 × 20 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-6x20",  title:"Kantholz 6 × 20 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-8x20",  title:"Kantholz 8 × 20 cm",  unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-10x20", title:"Kantholz 10 × 20 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"K-12x24", title:"Kantholz 12 × 24 cm", unitLock:"lfm", laengen_m: stdLen }
   ],
-  "Latten": [
-    { title:"4 x 6 cm", unit:"lfm", dicke_mm:40, nutzbreite_mm:60, laengen:[3,4,5,6] }
+  "Unbesäumte Bretter (sägerau)": [
+    { sku:"UB-24-15-22", title:"2,4 cm, Breite 15–22 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"UB-24-23-30", title:"2,4 cm, Breite 23–30 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"UB-30-15-22", title:"3,0 cm, Breite 15–22 cm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"UB-30-23-30", title:"3,0 cm, Breite 23–30 cm", unitLock:"lfm", laengen_m: stdLen }
+  ],
+  "Riffelbohlen 27 × 135 mm": [
+    { sku:"RIF-27x135-fein", title:"fein geriffelt (≈ 30 × 140 mm)", unitLock:"m²", laengen_m: stdLen },
+    { sku:"RIF-27x135-grob", title:"grob geriffelt / Barfußdiele",   unitLock:"m²", laengen_m: stdLen }
+  ],
+  "Schalung mit Nut & Feder – gehobelt": [
+    { sku:"NF-20x95",  title:"20 × 95 mm (DB 86 mm)",   unitLock:"m²", laengen_m: stdLen },
+    { sku:"NF-27x135", title:"27 × 135 mm (DB 125 mm)", unitLock:"m²", laengen_m: stdLen }
+  ],
+  "Schalung gehobelt – einseitig": [
+    { sku:"SGE-21mm", title:"Endmaß 21 mm", unitLock:"m²", laengen_m: stdLen },
+    { sku:"SGE-27mm", title:"Endmaß 27 mm", unitLock:"m²", laengen_m: stdLen },
+    { sku:"SGE-32mm", title:"Endmaß 32 mm", unitLock:"m²", laengen_m: stdLen }
+  ],
+  "Schalung gehobelt – vierseitig": [
+    { sku:"SGV-20mm", title:"Endmaß 20 mm", unitLock:"m²", laengen_m: stdLen },
+    { sku:"SGV-25mm", title:"Endmaß 25 mm", unitLock:"m²", laengen_m: stdLen },
+    { sku:"SGV-30mm", title:"Endmaß 30 mm", unitLock:"m²", laengen_m: stdLen }
+  ],
+  "Kantholz gehobelt – vierseitig": [
+    { sku:"KGV-90x90",   title:"90 × 90 mm",   unitLock:"lfm", laengen_m: stdLen },
+    { sku:"KGV-100x100", title:"100 × 100 mm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"KGV-110x110", title:"110 × 110 mm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"KGV-115x115", title:"115 × 115 mm", unitLock:"lfm", laengen_m: stdLen },
+    { sku:"KGV-120x120", title:"120 × 120 mm", unitLock:"lfm", laengen_m: stdLen }
+  ],
+  "Profile": [
+    { sku:"WFP-20x135",    title:"Wechselfalzprofil FM 20 × 135 mm (DB 125 mm)", unitLock:"m²", laengen_m: stdLen },
+    { sku:"SLP-20x95-135", title:"Softline-Profil 20 × 95 / 20 × 135 mm",        unitLock:"m²", laengen_m: stdLen }
+  ],
+  "Lose Produkte / Dienstleistungen": [
+    { sku:"HS-RM",   title:"Hackschnitzel frisch",        unitLock:"RM"  },
+    { sku:"SWR-L",   title:"Schwarten / Restholz Lärche", unitLock:"RM"  },
+    { sku:"SWR-E",   title:"Schwarten / Restholz Eiche",  unitLock:"RM"  },
+    { sku:"SPAN-RM", title:"Späne",                       unitLock:"RM"  },
+    { sku:"LS-FM",   title:"Lohnschnitt pro Festmeter",   unitLock:"FM"  },
+    { sku:"LS-STD",  title:"Lohnschnitt pro Stunde",      unitLock:"Std" }
   ]
 };
 
-/* ===== константы и состояние ===== */
-const FL_KLEIN=1.0, FL_GROSS=1.44, FL_TUER=2.1;
-let category=null, position=null, lenM=null, cut=10, direction='H';
-let walls=[]; // {L,H,G}
-let cK=0,cG=0,cT=0, extra=0;
+/* ---------- State ---------- */
+let catKey=null, prod=null;
+let cart=[];
 
-/* ===== helpers ===== */
-const el = id => document.getElementById(id);
-const fmt2 = v => (Math.round(v*100)/100).toLocaleString('de-DE');
+/* ---------- Init ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cats = Object.keys(DB);
+  el('ddCat').innerHTML = cats.map(k=>`<option value="${k}">${k}</option>`).join('');
+  catKey = cats[0];
+  renderProducts();
 
-/* ===== UI ===== */
-function init(){
-  // категории
-  const cats = Object.keys(SORTIMENT);
-  el('ddCategory').innerHTML = cats.map(c=>`<option value="${c}">${c}</option>`).join('');
-  category = cats[0];
-  fillPositions();
-  renderLenButtons();
+  el('ddCat').onchange = ()=>{ catKey = el('ddCat').value; renderProducts(); };
+  el('ddProd').onchange = onProductChange;
+  el('ddLen').onchange = updateCalcNote;
+  el('inpCut').oninput = updateCalcNote;
+  el('inpQty').oninput = updateCalcNote;
 
-  // события
-  el('ddCategory').onchange = ()=>{ category=el('ddCategory').value; fillPositions(); renderLenButtons(); updateAll(); };
-  el('ddPosition').onchange = ()=>{ const i=+el('ddPosition').value; position=(SORTIMENT[category]||[])[i]; renderLenButtons(); updateAll(); };
-  document.querySelectorAll('input[name="dir"]').forEach(r=>r.onchange=()=>{ direction=r.value; updateAll(); });
-  el('sldCut').oninput = e=>{ cut=+e.target.value; el('lblCut').textContent=cut+'%'; updateAll(); };
+  if(el('btnAdd')) el('btnAdd').onclick = addToCart; // guard
+  if(el('btnClear')) el('btnClear').onclick = ()=>{ cart=[]; renderCart(); toast('Warenkorb geleert.'); };
+  if(el('btnSend')) el('btnSend').onclick = sendAnfrage;
 
-  el('chkG').onchange=()=>{ el('inpGH').disabled=!el('chkG').checked; if(!el('chkG').checked) el('inpGH').value=''; };
-  el('btnAddWall').onclick=()=>{
-    const L=+el('inpWL').value, H=+el('inpWH').value, G=el('chkG').checked?+el('inpGH').value:0;
-    if(!(L>0 && H>0)) return;
-    if(el('chkG').checked && !(G>0)) return;
-    walls.push({L,H,G});
-    el('inpWL').value=''; el('inpWH').value=''; el('inpGH').value=''; el('chkG').checked=false; el('inpGH').disabled=true;
-    renderWalls(); updateAll();
-  };
+  el('chkPrivacy').onchange = controlSendEnabled;
+  el('inpName').oninput = controlSendEnabled;
+  el('inpEmail').oninput = controlSendEnabled;
 
-  const upd=()=>{ el('kCount').textContent=cK; el('gCount').textContent=cG; el('tCount').textContent=cT; updateAll(); };
-  el('kMinus').onclick=()=>{ cK=Math.max(0,cK-1); upd(); }; el('kPlus').onclick =()=>{ cK++; upd(); };
-  el('gMinus').onclick=()=>{ cG=Math.max(0,cG-1); upd(); }; el('gPlus').onclick =()=>{ cG++; upd(); };
-  el('tMinus').onclick=()=>{ cT=Math.max(0,cT-1); upd(); }; el('tPlus').onclick =()=>{ cT++; upd(); };
-  el('inpExtra').oninput=()=>{ extra=Math.max(0,+el('inpExtra').value||0); updateAll(); };
+  renderCart();
+  controlSendEnabled();
+});
 
-  el('btnCalc').onclick=updateAll;
-
-  // стартовые данные для наглядности
-  walls=[{L:6,H:2.7,G:0}]; renderWalls(); updateAll();
+/* ---------- UI ---------- */
+function renderProducts(){
+  const arr = DB[catKey] || [];
+  el('ddProd').innerHTML = arr.map((p,i)=>`<option value="${i}">${p.title}</option>`).join('');
+  prod = arr[0] || null;
+  setupUnitAndLengthUI();
+  updateCalcNote();
 }
 
-function fillPositions(){
-  const arr = SORTIMENT[category]||[];
-  el('ddPosition').innerHTML = arr.map((p,i)=>`<option value="${i}">${p.title}</option>`).join('');
-  position = arr[0];
+function onProductChange(){
+  const i=+el('ddProd').value;
+  prod = (DB[catKey]||[])[i]||null;
+  setupUnitAndLengthUI();
+  updateCalcNote();
 }
 
-function renderLenButtons(){
-  const c=el('lenButtons'); c.innerHTML='';
-  const lens = (position && position.laengen) ? position.laengen : [];
-  if(lens.length===0){ lenM=null; c.innerHTML='<span class="muted">Keine Längen definiert.</span>'; return; }
-  lenM = lens[0];
-  lens.forEach(L=>{
-    const b=document.createElement('button');
-    b.className='btn'+(L===lenM?' primary':''); b.textContent=`${L} m`;
-    b.onclick=()=>{ lenM=L; [...c.children].forEach(x=>x.classList.remove('primary')); b.classList.add('primary'); updateAll(); };
-    c.appendChild(b);
-  });
-}
+function setupUnitAndLengthUI(){
+  // Единица фиксирована (unitLock)
+  const ddUnit = el('ddUnit');
+  const qtyUnit = el('qtyUnit');
+  ddUnit.innerHTML = '';
+  const unit = prod?.unitLock || 'lfm';
+  ddUnit.innerHTML = `<option value="${unit}">${unit}</option>`;
+  ddUnit.value = unit;
+  ddUnit.disabled = true;
+  qtyUnit.textContent = `(${unit})`;
 
-function renderWalls(){
-  const cont=el('walls'); cont.innerHTML = walls.length? '' : '<div class="muted">Noch keine Wände hinzugefügt.</div>';
-  walls.forEach((w,i)=>{
-    const d=document.createElement('div'); d.className='wall-item';
-    const info=document.createElement('div'); info.className='info';
-    info.textContent=`L ${fmt2(w.L)} m × H ${fmt2(w.H)} m`+(w.G>0?` + Giebel ${fmt2(w.G)} m`:``);
-    const del=document.createElement('button'); del.className='del'; del.textContent='Entfernen';
-    del.onclick=()=>{ walls.splice(i,1); renderWalls(); updateAll(); };
-    d.appendChild(info); d.appendChild(del); cont.appendChild(d);
-  });
-}
+  // Длина/рез: показываем для lfm и m², скрываем для RM/FM/Std
+  const lenWrap = el('lenWrap');
+  const cutWrap = el('cutWrap');
+  const hasLens = Array.isArray(prod?.laengen_m) && prod.laengen_m.length>0;
 
-/* ===== расчёт ===== */
-function wallArea(w){ return w.L*w.H + (w.G>0 ? 0.5*w.L*w.G : 0); }
-
-function calcPieces(nb_m,len){
-  if(!(nb_m>0 && len>0)) return 0;
-  let pcs=0;
-  for(const w of walls){
-    const Hmax = w.H + (w.G>0 ? w.G : 0);
-    if(direction==='H'){
-      const rows = Math.ceil(Hmax/nb_m);
-      const perRow = Math.ceil(w.L/len);
-      pcs += rows*perRow;
+  if(unit==='RM' || unit==='FM' || unit==='Std'){
+    lenWrap.style.display='none';
+    cutWrap.style.display='none';
+  }else{
+    if(hasLens){
+      lenWrap.style.display='';
+      cutWrap.style.display='';
+      const dd = el('ddLen'), hint = el('lenHint');
+      dd.innerHTML = prod.laengen_m.map(L=>`<option value="${L}">${L} m</option>`).join('');
+      dd.disabled = false;
+      dd.value = String(prod.laengen_m[0]); // по умолчанию 3 м
+      hint.textContent = `(Standard: ${prod.laengen_m.join(', ')} m)`;
     }else{
-      const cols = Math.ceil(w.L/nb_m);
-      const perCol = Math.ceil(Hmax/len);
-      pcs += cols*perCol;
+      lenWrap.style.display='none';
+      cutWrap.style.display='none';
     }
   }
-  return pcs;
 }
 
-function updateAll(){
-  if(!position || !position.nutzbreite_mm || !position.dicke_mm || !lenM){
-    el('outLfm').textContent='0 lfm'; el('outStk').textContent='0'; el('outM3').textContent='0 m³'; el('outPrice').textContent='—'; return;
+/* ---------- Hinweis ---------- */
+function updateCalcNote(){ el('calcNote').textContent = ''; }
+
+/* ---------- Enable send ---------- */
+function controlSendEnabled(){
+  const hasItems = cart.length>0;
+  const okPrivacy = el('chkPrivacy').checked;
+  const nameOk = (el('inpName').value||'').trim().length>0;
+  const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((el('inpEmail').value||'').trim());
+  el('btnSend').disabled = !(hasItems && okPrivacy && nameOk && emailOk);
+}
+
+/* ---------- Cart ---------- */
+function addToCart(){
+  if(!prod){ toast('Bitte Produkt wählen.', false); return; }
+
+  const qty = parseDE(el('inpQty').value);
+  if(!(qty>0)){ toast('Menge muss > 0 sein.', false); return; }
+
+  const unit = prod.unitLock || 'lfm';
+  const hasLens = Array.isArray(prod?.laengen_m) && prod.laengen_m.length>0;
+
+  let stockLen = null, cutTo = null;
+  if ((unit==='lfm' || unit==='m²') && hasLens){
+    const lenSel = el('ddLen');
+    if(!lenSel || lenSel.disabled || !lenSel.value){ toast('Bitte Lagerlänge wählen.', false); return; }
+    stockLen = parseDE(lenSel.value);
+
+    const cutValRaw = (el('inpCut').value||'').trim();
+    if(cutValRaw){
+      const cutVal = parseDE(cutValRaw);
+      if(!(cutVal>0)){ toast('„Kürzen auf“ ist ungültig.', false); return; }
+      if(cutVal>stockLen){ toast('„Kürzen auf“ muss ≤ Lagerlänge sein.', false); return; }
+      cutTo = +cutVal.toFixed(2);
+    }
   }
-  const nb_m = position.nutzbreite_mm/1000;
-  const d_m  = position.dicke_mm/1000;
 
-  const sumW = walls.reduce((a,w)=>a+wallArea(w),0);
-  const flOpen = cK*FL_KLEIN + cG*FL_GROSS + cT*FL_TUER + (extra||0);
-  const netto = Math.max(0, sumW - flOpen);
+  const idx = cart.findIndex(x=>
+    x.sku===prod.sku && x.unit===unit &&
+    (x.stock_length_m??null)===(stockLen??null) &&
+    (x.cut_to_m??null)===(cutTo??null)
+  );
+  if(idx>-1){ cart[idx].qty = +(cart[idx].qty + qty).toFixed(2); }
+  else{
+    cart.push({
+      sku:prod.sku, title:prod.title, unit,
+      qty:+qty.toFixed(2),
+      stock_length_m: stockLen,
+      cut_to_m: cutTo
+    });
+  }
 
-  const lfm = nb_m>0 ? (netto/nb_m) : 0;
-  const lfmCut = lfm*(1+cut/100);
-  const m3 = lfmCut*d_m*nb_m;
-  const stk = calcPieces(nb_m,lenM);
+  el('inpQty').value='';
+  el('inpCut').value='';
 
-  el('outLfm').textContent=`${fmt2(lfmCut)} lfm`;
-  el('outStk').textContent=`${stk}`;
-  el('outM3').textContent =`${fmt2(m3)} m³`;
-  el('outPrice').textContent='—';
+  renderCart();
+  toast('Position hinzugefügt.');
+  controlSendEnabled();
 }
 
-/* ===== старт ===== */
-document.addEventListener('DOMContentLoaded', ()=>{
-  el('lblCut').textContent='10%';
-  init();
-  // обновлять при сдвиге слайдера
-  el('sldCut').addEventListener('input', e=>{ cut=+e.target.value; el('lblCut').textContent=cut+'%'; updateAll(); });
-});
+function renderCart(){
+  const body = el('cartBody');
+  body.innerHTML='';
+  if(!cart.length){
+    const tr=document.createElement('tr'); tr.id='emptyRow';
+    const td=document.createElement('td'); td.colSpan=5; td.className='muted'; td.textContent='Noch keine Positionen hinzugefügt.';
+    tr.appendChild(td); body.appendChild(tr);
+    controlSendEnabled();
+    return;
+  }
+  cart.forEach((item,i)=>{
+    const tr=document.createElement('tr');
+
+    const td1=document.createElement('td'); td1.textContent=item.title; td1.setAttribute('data-label','Produkt');
+
+    const tdLen=document.createElement('td'); tdLen.setAttribute('data-label','Länge');
+    if(item.stock_length_m){
+      tdLen.textContent = item.cut_to_m ? `${item.stock_length_m} m (gekürzt auf ${(+item.cut_to_m).toFixed(2)} m)` : `${item.stock_length_m} m`;
+    }else{
+      tdLen.textContent='—';
+    }
+
+    const td2=document.createElement('td'); td2.textContent=item.unit; td2.setAttribute('data-label','Einheit');
+
+    const td3=document.createElement('td'); td3.className='right'; td3.setAttribute('data-label','Menge');
+    const inp=document.createElement('input');
+    inp.type='text'; inp.inputMode='decimal';
+    inp.value=String(item.qty); inp.className='qty';
+    inp.onchange=()=>{ const v=parseDE(inp.value); item.qty = v>0?+v.toFixed(2):0; renderCart(); };
+    td3.appendChild(inp);
+    const u=document.createElement('span'); u.className='muted'; u.style.marginLeft='6px'; u.textContent=item.unit||''; td3.appendChild(u);
+
+    const td4=document.createElement('td'); td4.className='right'; td4.setAttribute('data-label','Aktion');
+    const btnDel=document.createElement('button'); btnDel.className='btn'; btnDel.textContent='Entfernen';
+    btnDel.onclick=()=>{ cart.splice(i,1); renderCart(); controlSendEnabled(); };
+    td4.appendChild(btnDel);
+
+    tr.appendChild(td1); tr.appendChild(tdLen); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
+    body.appendChild(tr);
+  });
+  controlSendEnabled();
+}
+
+/* ---------- Submit ---------- */
+function buildPayload(){
+  return {
+    contact: {
+      name:(el('inpName').value||'').trim(),
+      email:(el('inpEmail').value||'').trim(),
+      phone:(el('inpPhone').value||'').trim()
+    },
+    items: cart.map(x=>({
+      sku:x.sku, title:x.title, unit:x.unit, qty:x.qty,
+      stock_length_m: x.stock_length_m ?? null,
+      cut_to_m: x.cut_to_m ?? null
+    })),
+    mitteilung:(el('inpMessage').value||'').trim(),
+    privacyAccepted: el('chkPrivacy').checked === true,
+    disclaimer:"Ihre Anfrage ist unverbindlich."
+  };
+}
+function validateContact(){
+  const {name,email} = buildPayload().contact;
+  if(!name){ toast('Name ist erforderlich.', false); return false; }
+  if(!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ toast('Gültige E-Mail ist erforderlich.', false); return false; }
+  return true;
+}
+function sendAnfrage(){
+  if(!cart.length){ toast('Warenkorb ist leer.', false); return; }
+  if(!validateContact()) return;
+  if(!el('chkPrivacy').checked){ toast('Bitte stimmen Sie der Datenschutzerklärung zu.', false); return; }
+  const payload = buildPayload();
+
+  // 1) как в оригинале: postMessage для Velo/CRM
+  try{ window.top.postMessage({ type:'schnellanfrage', payload }, '*'); } catch(e){}
+
+  // 2) fallback-редирект
+  const targetPath = '/anfrage';
+  const qp = encodeURIComponent(JSON.stringify(payload));
+  window.top.location.href = `${targetPath}?data=${qp}`;
+}
 </script>
 </body>
 </html>
